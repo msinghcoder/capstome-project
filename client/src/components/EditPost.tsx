@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { History } from 'history'
 import { Form, Button, Input } from 'semantic-ui-react'
 import Auth from '../auth/Auth'
 import { getUploadUrl, patchPost, uploadFile } from '../api/posts-api'
@@ -13,11 +14,12 @@ enum UploadState {
 interface EditPostProps {
   match: {
     params: {
-      todoId: string,
-      todoName:string
+      postId: string,
+      postName:string
     }
   }
   auth: Auth
+  history:History
 }
 
 interface EditPostState {
@@ -33,7 +35,7 @@ EditPostState
   state: EditPostState = {
     file: undefined,
     uploadState: UploadState.NoUpload,
-    newPostCaption:this.props.match.params.todoName
+    newPostCaption:this.props.match.params.postName
   }
 
   handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,9 +46,8 @@ EditPostState
       file: files[0]
     })
   }
-  calculateDueDate(): string {
-    const date = new Date()
-    date.setDate(date.getDate() + 7)
+  calculateDate(): string {
+    const date = new Date()   
 
     return dateFormat(date, 'yyyy-mm-dd') as string
   }
@@ -61,22 +62,20 @@ EditPostState
       alert('File should be selected')
       return
     }
-    await patchPost(this.props.auth.getIdToken(), this.props.match.params.todoId, {
+    await patchPost(this.props.auth.getIdToken(), this.props.match.params.postId, {
             name: this.state.newPostCaption,
-            dueDate:this.calculateDueDate(),
-            done: true
+            date:this.calculateDate()
+            
           })
-          
-   
-     
 
       this.setUploadState(UploadState.FetchingPresignedUrl)
-      const uploadUrl = await getUploadUrl(this.props.auth.getIdToken(), this.props.match.params.todoId)
+      const uploadUrl = await getUploadUrl(this.props.auth.getIdToken(), this.props.match.params.postId)
 
       this.setUploadState(UploadState.UploadingFile)
       await uploadFile(uploadUrl, this.state.file)
 
       alert('Post updated!')
+      this.props.history.push(`/`)
     } catch (e) {
       alert('Could not upload a file: ' + (e as Error).message)
     } finally {
