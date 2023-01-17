@@ -12,10 +12,10 @@ export class AttachmentUtils {
     ) {
     }
 
-    getSignedURL(todoId: string): string {
+    getSignedURL(postId: string): string {
         return this.s3.getSignedUrl('putObject', {
             Bucket: s3Bucket,
-            Key: todoId,
+            Key: postId,
             Expires: parseInt(signedUrlExpiry)
         })
     }

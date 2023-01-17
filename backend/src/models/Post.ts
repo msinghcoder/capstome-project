@@ -1,9 +1,8 @@
-export interface TodoItem {
+export interface Post {
   userId: string
-  todoId: string
+  postId: string
   createdAt: string
   name: string
-  dueDate: string
-  done: boolean
+  date: string  
   attachmentUrl?: string
 }

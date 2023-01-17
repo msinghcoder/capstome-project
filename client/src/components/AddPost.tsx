@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { History } from 'history'
 import { Form, Button,  Input  } from 'semantic-ui-react'
 import Auth from '../auth/Auth'
 import { getUploadUrl, uploadFile } from '../api/posts-api'
@@ -13,6 +14,7 @@ enum UploadState {
 
 interface AddPostProps {
   auth: Auth
+  history:History
 }
 
 interface AddPostState {
@@ -30,9 +32,9 @@ export class AddPost extends React.PureComponent<
     uploadState: UploadState.NoUpload,
     newPostCaption:""
   }
-  calculateDueDate(): string {
+  calculateDate(): string {
     const date = new Date()
-    date.setDate(date.getDate() + 7)
+    
 
     return dateFormat(date, 'yyyy-mm-dd') as string
   }
@@ -57,10 +59,10 @@ export class AddPost extends React.PureComponent<
         alert('File should be selected')
         return
       }
-      const dueDate = this.calculateDueDate()
+     
       const newPost = await createPost(this.props.auth.getIdToken(), {
-        name: this.state.newPostCaption,
-        dueDate
+        name: this.state.newPostCaption  ,
+        date: this.calculateDate()     
       })
    
      
@@ -68,12 +70,13 @@ export class AddPost extends React.PureComponent<
       
 
       this.setUploadState(UploadState.FetchingPresignedUrl)
-      const uploadUrl = await getUploadUrl(this.props.auth.getIdToken(), newPost.todoId)
+      const uploadUrl = await getUploadUrl(this.props.auth.getIdToken(), newPost.postId)
 
       this.setUploadState(UploadState.UploadingFile)
       await uploadFile(uploadUrl, this.state.file)
 
       alert('Post created!')
+      this.props.history.push(`/`)
     } catch (e) {
       alert('Could not upload a file: ' + (e as Error).message)
     } finally {
@@ -97,18 +100,16 @@ export class AddPost extends React.PureComponent<
     
       
       <div>
-        
+         <h1>Add new post</h1>
+
         <Input          
           fluid
           actionPosition="left"
           placeholder="Caption for the post"
           value={this.state.newPostCaption}
           onChange={this.handleNameChange}
-        />
-   
- 
-        <h1>Upload image</h1>
-
+        /> 
+       
         <Form onSubmit={this.handleSubmit}>
           <Form.Field>
             <label>File</label>

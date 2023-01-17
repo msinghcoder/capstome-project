@@ -7,21 +7,21 @@ import { UpdatePostRequest } from '../types/UpdatePostRequest';
 export async function getPosts(idToken: string): Promise<Post[]> {
   console.log('Fetching posts')
 
-  const response = await Axios.get(`${apiEndpoint}/todos`, {
+  const response = await Axios.get(`${apiEndpoint}/posts`, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${idToken}`
     },
   })
-  console.log('Todos:', response.data)
+  console.log('Posts:', response.data)
   return response.data.items
 }
 
 export async function createPost(
   idToken: string,
-  newTodo: CreatePostRequest
+  newPost: CreatePostRequest
 ): Promise<Post> {
-  const response = await Axios.post(`${apiEndpoint}/todos`,  JSON.stringify(newTodo), {
+  const response = await Axios.post(`${apiEndpoint}/posts`,  JSON.stringify(newPost), {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${idToken}`
@@ -32,10 +32,10 @@ export async function createPost(
 
 export async function patchPost(
   idToken: string,
-  todoId: string,
-  updatedTodo: UpdatePostRequest
+  postId: string,
+  updatedPost: UpdatePostRequest
 ): Promise<void> {
-  await Axios.patch(`${apiEndpoint}/todos/${todoId}`, JSON.stringify(updatedTodo), {
+  await Axios.patch(`${apiEndpoint}/posts/${postId}`, JSON.stringify(updatedPost), {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${idToken}`
@@ -45,9 +45,9 @@ export async function patchPost(
 
 export async function deletePost(
   idToken: string,
-  todoId: string
+  postId: string
 ): Promise<void> {
-  await Axios.delete(`${apiEndpoint}/todos/${todoId}`, {
+  await Axios.delete(`${apiEndpoint}/posts/${postId}`, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${idToken}`
@@ -57,9 +57,9 @@ export async function deletePost(
 
 export async function getUploadUrl(
   idToken: string,
-  todoId: string
+  postId: string
 ): Promise<string> {
-  const response = await Axios.post(`${apiEndpoint}/todos/${todoId}/attachment`, '', {
+  const response = await Axios.post(`${apiEndpoint}/posts/${postId}/attachment`, '', {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${idToken}`

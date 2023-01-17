@@ -1,5 +1,5 @@
 export interface Post {
-  todoId: string
+  postId: string
   createdAt: string
   name: string
   dueDate: string

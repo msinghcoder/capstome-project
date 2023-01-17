@@ -1,4 +1,4 @@
 export interface CreatePostRequest {
   name: string
-  dueDate: string
+  date:string 
 }

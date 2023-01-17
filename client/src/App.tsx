@@ -7,7 +7,7 @@ import { EditPost } from './components/EditPost'
 import { AddPost } from './components/AddPost'
 import { LogIn } from './components/LogIn'
 import { NotFound } from './components/NotFound'
-import { Todos } from './components/Posts'
+import { Posts } from './components/Posts'
 
 import "./App.css";
 
@@ -96,19 +96,19 @@ export default class App extends Component<AppProps, AppState> {
           path="/"
           exact
           render={props => {
-            return <Todos {...props} auth={this.props.auth} />
+            return <Posts {...props} auth={this.props.auth} />
           }}
         />
 
         <Route
-          path="/todos/:todoId/:todoName/edit"
+          path="/posts/:postId/:postName/edit"
           exact
           render={props => {
             return <EditPost {...props} auth={this.props.auth} />
           }}
         />
          <Route
-          path="/todos/add"
+          path="/posts/add"
           exact
           render={props => {
             return <AddPost {...props} auth={this.props.auth} />

@@ -2,69 +2,69 @@ import * as AWS from 'aws-sdk'
 
 import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 import { createLogger } from '../utils/logger'
-import { TodoItem } from '../models/TodoItem'
-import { TodoUpdate } from '../models/TodoUpdate';
+import { Post } from '../models/Post'
+import { PostUpdate } from '../models/PostUpdate';
 
 
 
 const AWSXRay = require('aws-xray-sdk')
 const XAWS = AWSXRay.captureAWS(AWS)
-const logger = createLogger('TodosAccess')
+const logger = createLogger('PostsAccess')
 const s3Bucket = process.env.ATTACHMENT_S3_BUCKET
 
-export class ToDoAccess {
+export class PostDataAccess {
 
     constructor(
         private readonly docClient: DocumentClient = createDynamoDBClient(),
-        private readonly todosTable = process.env.TODOS_TABLE) {
+        private readonly postsTable = process.env.POSTS_TABLE) {
     }
 
 
 
-    async createToDo(toDo: TodoItem): Promise<TodoItem> {
-        logger.info("Creating new todo")
+    async createPost(post: Post): Promise<Post> {
+        logger.info("Creating new post")
 
         await this.docClient.put({
-            TableName: this.todosTable,
-            Item: toDo
+            TableName: this.postsTable,
+            Item: post
         }).promise()
 
-        return toDo
+        return post
     }
 
-    async deleteToDo(todoId: string, userId: string): Promise<void> {
-        logger.info("Deleting  todo having Id" + todoId + "by user id" + userId)
+    async deletePost(postId: string, userId: string): Promise<void> {
+        logger.info("Deleting  Post having Id" + postId + "by user id" + userId)
 
         await this.docClient.delete({
-            TableName: this.todosTable,
+            TableName: this.postsTable,
             Key: {
                 userId: userId,
-                todoId: todoId
+                postId: postId
             }
         }).promise()
 
     }
 
-    async putAttachment(userId: string, todoId: string): Promise<void> {
-        logger.info("saving  todo attachment Url having Id" + todoId + "by user id" + userId)
+    async putAttachment(userId: string, postId: string): Promise<void> {
+        logger.info("saving  Post attachment Url having Id" + postId + "by user id" + userId)
         await this.docClient.update({
-            TableName: this.todosTable,
+            TableName: this.postsTable,
             Key: {
                 userId: userId,
-                todoId: todoId
+                postId: postId
             },
             UpdateExpression: "set attachmentUrl = :attachmentUrl",
             ExpressionAttributeValues: {
-                ":attachmentUrl": `https://${s3Bucket}.s3.amazonaws.com/${todoId}`
+                ":attachmentUrl": `https://${s3Bucket}.s3.amazonaws.com/${postId}`
             }
         }).promise()
     }
 
-    async getTodosForUser(userId: string): Promise<TodoItem[]> {
-        logger.info("Getting all todos for user id" + userId)
+    async getPostsForUser(userId: string): Promise<Post[]> {
+        logger.info("Getting all posts for user id" + userId)
 
         const result = await this.docClient.query({
-            TableName: this.todosTable,
+            TableName: this.postsTable,
             KeyConditionExpression: 'userId = :userId',
             ExpressionAttributeValues: {
                 ':userId': userId
@@ -72,27 +72,26 @@ export class ToDoAccess {
             ScanIndexForward: false
         }).promise()
 
-        return result.Items as TodoItem[]
+        return result.Items as Post[]
     }
-    async updateTodo(userId: string, todoId: string, updatedTodo: TodoUpdate) {
-        logger.info("Updating toDos with id" + todoId + "for user id" + userId)
+    async updatePost(userId: string, postId: string, updatedPost: PostUpdate) {
+        logger.info("Updating Posts with id" + postId + "for user id" + userId)
 
         await this.docClient.update({
-            TableName: this.todosTable,
+            TableName: this.postsTable,
             Key: {
                 userId: userId,
-                todoId: todoId
+                postId: postId
             },
-            UpdateExpression: "set #name = :n, #dueDate = :due, #done = :don",
+            UpdateExpression: "set #name = :n, #date = :due",
             ExpressionAttributeNames: {
                 "#name": "name",
-                "#dueDate": "dueDate",
-                "#done": "done",
+                "#date": "date"               
             },
             ExpressionAttributeValues: {
-                ":n": updatedTodo.name,
-                ":due": updatedTodo.dueDate,
-                ":don": updatedTodo.done
+                ":n": updatedPost.name,
+                ":due": updatedPost.date
+               
             },
         }).promise()
     }

@@ -1,6 +1,6 @@
 org: msingh296
-app: serverless-todo-app
-service: serverless-todo-app
+app: udagram-serverless-app
+service: udagram-serverless-app
 
 plugins:
   - serverless-webpack
@@ -22,9 +22,9 @@ provider:
   # Use these variables in the functions and resouorces section below. For example, 
   # ${self:provider.environment.ATTACHMENT_S3_BUCKET}
   environment:
-    TODOS_TABLE: Todos-${self:provider.stage}
-    TODOS_CREATED_AT_INDEX: CreatedAtIndex
-    ATTACHMENT_S3_BUCKET: udacity-msingh-serverless-todo-images-${self:provider.stage}
+    POSTS_TABLE: Posts-${self:provider.stage}
+    POSTS_CREATED_AT_INDEX: CreatedAtIndex
+    ATTACHMENT_S3_BUCKET: msingh-udagram-serverless-images-${self:provider.stage}
     SIGNED_URL_EXPIRATION: 300
     
 
@@ -49,73 +49,73 @@ functions:
 
   # TODO: Configure this function - 
   # Provide iamRoleStatements property. Decide the Actions and AWS Resource. 
-  GetTodos:
-    handler: src/lambda/http/getTodos.handler
+  GetPosts:
+    handler: src/lambda/http/getPosts.handler
     events:
       - http:
           method: get
-          path: todos
+          path: posts
           cors: true
           authorizer: Auth
     iamRoleStatements:
       - Effect: Allow
         Action:
           - dynamodb:Query
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.POSTS_TABLE}
 
   # TODO: Configure this function - 
   # Provide iamRoleStatements property. Decide the Actions and AWS Resource. 
   # To refer to an AWS resource defined in the "Resources" section, you can use "Resource: !GetAtt <resource-name>.Arn"
   # To validate incoming HTTP requests, we have provided the request schemas in function definition below. 
-  CreateTodo:
-    handler: src/lambda/http/createTodo.handler
+  CreatePost:
+    handler: src/lambda/http/createPost.handler
     events:
       - http:
           method: post
-          path: todos
+          path: posts
           cors: true
           authorizer: Auth
           reqValidatorName: RequestBodyValidator
           request:
             schemas:
-              application/json: ${file(models/create-todo-model.json)}
+              application/json: ${file(models/create-post-model.json)}
 
     iamRoleStatements:
       - Effect: Allow
         Action:
           - dynamodb:PutItem
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.POSTS_TABLE}
 
   # TODO: Configure this function
   # Provide property for setting up CORS, Authorizer, iamRoleStatements, and request schemas
-  UpdateTodo:
-    handler: src/lambda/http/updateTodo.handler
+  UpdateDelete:
+    handler: src/lambda/http/updatePost.handler
     events:
       - http:
           method: patch
-          path: todos/{todoId}
+          path: posts/{postId}
           cors: true
           authorizer: Auth
           reqValidatorName: RequestBodyValidator
           request:
             schema:
-              application/json: ${file(models/update-todo-model.json)}
+              application/json: ${file(models/update-post-model.json)}
 
     iamRoleStatements:
       - Effect: Allow
         Action:
           - dynamodb:UpdateItem
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.POSTS_TABLE}
 
 
   # TODO: Configure this function
   # Provide property for setting up CORS, Authorizer, iamRoleStatements
-  DeleteTodo:
-    handler: src/lambda/http/deleteTodo.handler
+  DeletePost:
+    handler: src/lambda/http/deletePost.handler
     events:
       - http:
           method: delete
-          path: todos/{todoId}
+          path: posts/{postId}
           cors: true
           authorizer: Auth
 
@@ -123,7 +123,7 @@ functions:
       - Effect: Allow
         Action:
           - dynamodb:DeleteItem
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.POSTS_TABLE}
 
   # TODO: Configure this function
   # Provide property for setting up CORS, Authorizer, iamRoleStatements
@@ -132,7 +132,7 @@ functions:
     events:
       - http:
           method: post
-          path: todos/{todoId}/attachment
+          path: posts/{postId}/attachment
           cors: true
           authorizer: Auth
 
@@ -140,7 +140,7 @@ functions:
       - Effect: Allow
         Action:
           - dynamodb:UpdateItem
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.POSTS_TABLE}
       - Effect: Allow
         Action:
           - s3:PutObject
@@ -173,11 +173,11 @@ resources:
           Ref: ApiGatewayRestApi
     
     # DynamoDB table with local secondary index and a composite key
-    TodosTable:
+    PostsTable:
       Type: AWS::DynamoDB::Table
       Properties:
         AttributeDefinitions:
-          - AttributeName: todoId
+          - AttributeName: postId
             AttributeType: S
           - AttributeName: userId
             AttributeType: S
@@ -186,12 +186,12 @@ resources:
         KeySchema:
           - AttributeName: userId
             KeyType: HASH
-          - AttributeName: todoId
+          - AttributeName: postId
             KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
-        TableName: ${self:provider.environment.TODOS_TABLE}
+        TableName: ${self:provider.environment.POSTS_TABLE}
         LocalSecondaryIndexes:
-          - IndexName: ${self:provider.environment.TODOS_CREATED_AT_INDEX}
+          - IndexName: ${self:provider.environment.POSTS_CREATED_AT_INDEX}
             KeySchema:
               - AttributeName: userId
                 KeyType: HASH
@@ -234,5 +234,5 @@ resources:
               Action:
                 - s3:GetObject
                 - s3:PutObject
-              Resource: "arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}"
+              Resource: "arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*"
         Bucket: !Ref AttachmentsBucket
